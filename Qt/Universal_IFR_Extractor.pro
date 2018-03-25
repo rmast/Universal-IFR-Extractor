@@ -8,9 +8,9 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = "Univeral IFR Extractor"
+TARGET = "Universal IFR Extractor"
 TEMPLATE = app
-ICON = icns/Univeral_IFR_Extractor.icns
+ICON = icns/Universal_IFR_Extractor.icns
 QMAKE_CXXFLAGS += -std=c++11
 
 DEFINES += UNIVERSAL_IFR_EXTRACTOR
