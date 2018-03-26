@@ -29,6 +29,7 @@ void MainWindow::unlockExtractButton() {
 void MainWindow::setupUi()
 {
     setWindowTitle(QString(PROJECT_NAME) + " " + PROJECT_VERSION);
+    setFixedSize(geometry().width(),geometry().height());
     setExtractButtonGeometry();
     lockExtractButton();
 }

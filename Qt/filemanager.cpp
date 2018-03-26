@@ -7,7 +7,7 @@ bool FileManager::isFileNameExist() const
     return QFileInfo::exists(fileName)? true: false;
 }
 
-const QString FileManager::getFileName() const
+QString FileManager::getFileName() const
 {
     return fileName;
 }
@@ -21,19 +21,14 @@ void InputFileManager::openFileDialog()
 
 void InputFileManager::readFile()
 {
-    if (!isFileNameExist()) throw FileManagerException(ERR_FILE_NOT_EXIST);
-
     QFile file(fileName);
-    QDataStream stream(&file);
-    stream.setVersion(5);
 
-    if (!file.open(QIODevice::ReadOnly)) {
-        return;
-    }
+    if (!isFileNameExist()) throw FileManagerException(ERR_FILE_NOT_EXIST);
+    if (!file.open(QIODevice::ReadOnly)) throw FileManagerException(ERR_IO);
+
     fileContent = file.readAll();
-
-    //qDebug() << "Read " << fileContent.size() << " bytes";
     file.close();
+    //qDebug() << "Read " << fileContent.size() << " bytes"; 
 }
 
 QByteArray InputFileManager::getFileContent()
@@ -59,7 +54,6 @@ void OutputFileManager::saveFileDialog()
 FileManagerException::FileManagerException(FileError error)
 {
     this->error = error;
-    //qDebug() << "FileManager Exception: " << getErrorDescription();
 }
 
 FileError FileManagerException::getError()

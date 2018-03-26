@@ -13,7 +13,7 @@ protected:
     QString fileName;
 
 public:
-    const QString getFileName() const;
+    QString getFileName() const;
     bool isFileNameExist() const;
 };
 

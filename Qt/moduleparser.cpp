@@ -101,8 +101,6 @@ void UEFIModuleParser::generateDump()
     std::string buffer = moduleContent.toStdString();
     std::vector<std::string> strings;
 
-    //qDebug() << "Buffer size: " << buffer.size();
-
     // Check if protocol is EFI
     if (moduleType == "EFI")
     {
@@ -126,8 +124,8 @@ void UEFIModuleParser::generateDump()
     else if (moduleType == "UEFI")
     {
         // Initialize UEFI variables
-        vector<UEFI_IFR_STRING_PACK> stringPackages;
-        vector<UEFI_IFR_FORM_SET_PACK> formSets;
+        std::vector<UEFI_IFR_STRING_PACK> stringPackages;
+        std::vector<UEFI_IFR_FORM_SET_PACK> formSets;
 
         // Get UEFI string packages
 

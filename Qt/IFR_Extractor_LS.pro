@@ -11,6 +11,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = "IFR Extractor LS"
 TEMPLATE = app
 ICON = icns/IFR_Extractor_LS.icns
+RC_FILE = ../ifrextractor.rc
 QMAKE_CXXFLAGS += -std=c++11
 
 DEFINES += IFR_EXTRACTOR_LS
