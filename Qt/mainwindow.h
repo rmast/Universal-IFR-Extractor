@@ -8,7 +8,7 @@
     #define PROJECT_VERSION "v0.6"
 #else
     #define PROJECT_NAME    "EFI/UEFI IFR Extractor LS"
-    #define PROJECT_VERSION "v0.3.2"
+    #define PROJECT_VERSION "v0.3.6"
 #endif
 
 // forward declaration
