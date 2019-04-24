@@ -83,8 +83,8 @@ type getType(const string &buffer);
 
 
 // Main function
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow) {
-
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR szCmdLine, int iCmdShow) 
+{
     // Initialize variables
     static TCHAR appName[] = TEXT("IFRExtractor LS");
     HWND hwnd;
@@ -110,7 +110,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 
     // Create window
     hwnd = CreateWindow(appName,
-        TEXT("IFRExtractor LS v0.3.2"),
+        TEXT("IFRExtractor LS v0.3.6"),
         WS_SYSMENU | WS_MINIMIZEBOX,
         0, 0,
         350, 120,
@@ -139,10 +139,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
     // Check message
     switch (message) {
-
-        // Create
+    
+	// Create
     case WM_CREATE:
-
         // Center window
         RECT rectangle;
         GetWindowRect(hwnd, &rectangle);
@@ -241,7 +240,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
         // Break
         break;
 
-        // Command
+    // Command
     case WM_COMMAND:
 
         // Check if extract button action
@@ -274,7 +273,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
                 // Check if output file was canceled
                 if (!saveFile(hwnd))
-
                     // Break
                     break;
 
@@ -375,7 +373,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
         break;
 
-        // Static color
+    // Static color
     case WM_CTLCOLORSTATIC:
 
         // Make static control transparent
@@ -427,7 +425,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
         // Return result
         return (LRESULT)GetStockObject(NULL_BRUSH);
 
-        // Close
+    // Close
     case WM_DESTROY:
 
         // Quit
@@ -441,34 +439,34 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
     return DefWindowProc(hwnd, message, wParam, lParam);
 }
 
-void fileBrowser(HWND hwnd) {
+void fileBrowser(HWND hwnd) 
+{
+	// Initialize variables
+	OPENFILENAME browserInfo;
+	CHAR szFile[MAX_PATH];
 
-    // Initialize variables
-    OPENFILENAME browserInfo;
-    CHAR szFile[MAX_PATH];
+	// Set dialog options
+	ZeroMemory(&browserInfo, sizeof(browserInfo));
+	browserInfo.lStructSize = sizeof(browserInfo);
+	browserInfo.hwndOwner = hwnd;
+	browserInfo.lpstrFilter = TEXT("All files(*.*)\0*.*\0");
+	browserInfo.lpstrFile = szFile;
+	browserInfo.lpstrFile[0] = '\0';
+	browserInfo.nMaxFile = MAX_PATH;
+	browserInfo.nFilterIndex = 1;
+	browserInfo.lpstrInitialDir = NULL;
+	browserInfo.lpstrFileTitle = NULL;
+	browserInfo.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 
-    // Set dialog options
-    ZeroMemory(&browserInfo, sizeof(browserInfo));
-    browserInfo.lStructSize = sizeof(browserInfo);
-    browserInfo.hwndOwner = hwnd;
-    browserInfo.lpstrFilter = TEXT("All files(*.*)\0*.*\0");
-    browserInfo.lpstrFile = szFile;
-    browserInfo.lpstrFile[0] = '\0';
-    browserInfo.nMaxFile = MAX_PATH;
-    browserInfo.nFilterIndex = 1;
-    browserInfo.lpstrInitialDir = NULL;
-    browserInfo.lpstrFileTitle = NULL;
-    browserInfo.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-
-    // Check if file was selected
-    if (GetOpenFileName(&browserInfo))
-
-        // Update file location edit
-        SetWindowText(fileLocationEdit, TEXT(browserInfo.lpstrFile));
+	// Check if file was selected
+	if (GetOpenFileName(&browserInfo)) {
+		// Update file location edit
+		SetWindowText(fileLocationEdit, TEXT(browserInfo.lpstrFile));
+	}
 }
 
-bool saveFile(HWND hwnd) {
-
+bool saveFile(HWND hwnd) 
+{
     // Initialize variables
     OPENFILENAME browserInfo;
     string fileName = fileLocation.substr(0, fileLocation.find_last_of('.')) + " IFR";
@@ -498,8 +496,8 @@ bool saveFile(HWND hwnd) {
     return false;
 }
 
-void showDialog(HWND hwnd) {
-
+void showDialog(HWND hwnd) 
+{
     // Initialize variables
     string header, message;
 
@@ -539,8 +537,8 @@ void showDialog(HWND hwnd) {
     }
 }
 
-bool fileExists(const string &file) {
-
+bool fileExists(const string &file) 
+{
     // Open file
 #if (_MSC_VER < 1600)
     ifstream fin(file.c_str());
@@ -548,12 +546,12 @@ bool fileExists(const string &file) {
     ifstream fin(file);
 #endif
 
-    // Return if first characetr doesn't equal EOF
+    // Return if first character doesn't equal EOF
     return fin.peek() != EOF;
 }
 
-void readFile(const string &file, string &buffer) {
-
+void readFile(const string &file, string &buffer) 
+{
     // Initialize variables
 #if (_MSC_VER < 1600)
     ifstream fin(file.c_str(), ios::binary);
@@ -572,23 +570,24 @@ void readFile(const string &file, string &buffer) {
     fin.close();
 }
 
-type getType(const string &buffer) {
+type getType(const string &buffer)
+{
+
+    type currtype = UNKNOWN;
 
     // Go through buffer
-    for (unsigned int i = 0; i < buffer.size() - 9; i++)
-
-        // Check if an EFI string pakage was found
-        if ((buffer[i] != '\x00' || buffer[i + 1] != '\x00' || buffer[i + 2] != '\x00' || buffer[i + 3] != '\x00') && buffer[i + 4] == '\x02' && buffer[i + 5] == '\x00' && (buffer[i + 6] != '\x00' || buffer[i + 7] != '\x00' || buffer[i + 8] != '\x00' || buffer[i + 9] != '\x00') && i + static_cast<unsigned char>(buffer[i + 6]) + (static_cast<unsigned char>(buffer[i + 7]) << 8) + (static_cast<unsigned char>(buffer[i + 8]) << 16) + (static_cast<unsigned char>(buffer[i + 9]) << 24) < buffer.size() && buffer[i + static_cast<unsigned char>(buffer[i + 6]) + (static_cast<unsigned char>(buffer[i + 7]) << 8) + (static_cast<unsigned char>(buffer[i + 8]) << 16) + (static_cast<unsigned char>(buffer[i + 9]) << 24) + 4] >= 'a' && buffer[i + static_cast<unsigned char>(buffer[i + 6]) + (static_cast<unsigned char>(buffer[i + 7]) << 8) + (static_cast<unsigned char>(buffer[i + 8]) << 16) + (static_cast<unsigned char>(buffer[i + 9]) << 24) + 4] <= 'z' && i + static_cast<unsigned char>(buffer[i]) + (static_cast<unsigned char>(buffer[i + 1]) << 8) + (static_cast<unsigned char>(buffer[i + 2]) << 16) + (static_cast<unsigned char>(buffer[i + 3]) << 24) < buffer.size() && buffer[i + static_cast<unsigned char>(buffer[i]) + (static_cast<unsigned char>(buffer[i + 1]) << 8) + (static_cast<unsigned char>(buffer[i + 2]) << 16) + (static_cast<unsigned char>(buffer[i + 3]) << 24) + 4] == '\x02' && buffer[i + static_cast<unsigned char>(buffer[i]) + (static_cast<unsigned char>(buffer[i + 1]) << 8) + (static_cast<unsigned char>(buffer[i + 2]) << 16) + (static_cast<unsigned char>(buffer[i + 3]) << 24) + 5] == '\x00')
-
-            // Return EFI
-            return EFI;
-
-    // Otherwise check if a UEFI string pakage was found
-        else if ((buffer[i] != '\x00' || buffer[i + 1] != '\x00' || buffer[i + 2] != '\x00') && buffer[i + 3] == '\x04' && buffer[i + 4] == '\x34' && (buffer[i + 44] == '\x01' || buffer[i + 44] == '\x02') && buffer[i + 45] == '\x00' && buffer[i + 48] == '\x2D' && i + static_cast<unsigned char>(buffer[i]) + (static_cast<unsigned char>(buffer[i + 1]) << 8) + (static_cast<unsigned char>(buffer[i + 2]) << 16) < buffer.size() && buffer[i + static_cast<unsigned char>(buffer[i]) + (static_cast<unsigned char>(buffer[i + 1]) << 8) + (static_cast<unsigned char>(buffer[i + 2]) << 16) - 1] == '\x00' && buffer[i + static_cast<unsigned char>(buffer[i]) + (static_cast<unsigned char>(buffer[i + 1]) << 8) + (static_cast<unsigned char>(buffer[i + 2]) << 16) - 2] == '\x00')
-
-            // Return UEFI
+    for(unsigned int i = 0; i < buffer.size() - 9; i++) {
+    
+        // Check if an EFI string package was found
+        if((buffer[i] != '\x00' || buffer[i + 1] != '\x00' || buffer[i + 2] != '\x00' || buffer[i + 3] != '\x00') && buffer[i + 4] == '\x02' && buffer[i + 5] == '\x00' && (buffer[i + 6] != '\x00' || buffer[i + 7] != '\x00' || buffer[i + 8] != '\x00' || buffer[i + 9] != '\x00') && i + static_cast<unsigned char>(buffer[i + 6]) + (static_cast<unsigned char>(buffer[i + 7]) << 8) + (static_cast<unsigned char>(buffer[i + 8]) << 16) + (static_cast<unsigned char>(buffer[i + 9]) << 24) < buffer.size() && buffer[i + static_cast<unsigned char>(buffer[i + 6]) + (static_cast<unsigned char>(buffer[i + 7]) << 8) + (static_cast<unsigned char>(buffer[i + 8]) << 16) + (static_cast<unsigned char>(buffer[i + 9]) << 24) + 4] >= 'a' && buffer[i + static_cast<unsigned char>(buffer[i + 6]) + (static_cast<unsigned char>(buffer[i + 7]) << 8) + (static_cast<unsigned char>(buffer[i + 8]) << 16) + (static_cast<unsigned char>(buffer[i + 9]) << 24) + 4] <= 'z' && i + static_cast<unsigned char>(buffer[i]) + (static_cast<unsigned char>(buffer[i + 1]) << 8) + (static_cast<unsigned char>(buffer[i + 2]) << 16) + (static_cast<unsigned char>(buffer[i + 3]) << 24) < buffer.size() && buffer[i + static_cast<unsigned char>(buffer[i]) + (static_cast<unsigned char>(buffer[i + 1]) << 8) + (static_cast<unsigned char>(buffer[i + 2]) << 16) + (static_cast<unsigned char>(buffer[i + 3]) << 24) + 4] == '\x02' && buffer[i + static_cast<unsigned char>(buffer[i]) + (static_cast<unsigned char>(buffer[i + 1]) << 8) + (static_cast<unsigned char>(buffer[i + 2]) << 16) + (static_cast<unsigned char>(buffer[i + 3]) << 24) + 5] == '\x00') {
+            // Notice legacy EFI
+            currtype = EFI;
+        // Otherwise check if a UEFI string package was found
+        } else if((buffer[i] != '\x00' || buffer[i + 1] != '\x00' || buffer[i + 2] != '\x00') && buffer[i + 3] == '\x04' && buffer[i + 4] == '\x34' && buffer[i + 44] == '\x01' && buffer[i + 45] == '\x00' && buffer[i + 48] == '\x2D' && i + static_cast<unsigned char>(buffer[i]) + (static_cast<unsigned char>(buffer[i + 1]) << 8) + (static_cast<unsigned char>(buffer[i + 2]) << 16) < buffer.size() && buffer[i + static_cast<unsigned char>(buffer[i]) + (static_cast<unsigned char>(buffer[i + 1]) << 8) + (static_cast<unsigned char>(buffer[i + 2]) << 16) - 1] == '\x00' && buffer[i + static_cast<unsigned char>(buffer[i]) + (static_cast<unsigned char>(buffer[i + 1]) << 8) + (static_cast<unsigned char>(buffer[i + 2]) << 16) - 2] == '\x00') {
+            // Prefer UEFI over EFI
             return UEFI;
-
-    // Return unknown
-    return UNKNOWN;
+        }
+    }
+    
+    return currtype;
 }

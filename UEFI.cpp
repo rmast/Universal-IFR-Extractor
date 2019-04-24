@@ -1,10 +1,15 @@
-// Header files
+#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <fstream>
 #include <iomanip>
 
 #include "UEFI.h"
 #include "UEFIHeader.h"
+
+#if defined (__unix__) || defined (__APPLE__)
+#include <cstring>
+#define _strcmpi strcasecmp
+#endif
 
 // Supporting function implementation
 void getUEFIStringPackages(vector<UEFI_IFR_STRING_PACK> &stringPackages, const string &buffer) {
@@ -16,7 +21,7 @@ void getUEFIStringPackages(vector<UEFI_IFR_STRING_PACK> &stringPackages, const s
     for (uint32_t i = 0; i < buffer.size() - 48; i++)
 
         // Check if string pakage was found
-        if ((buffer[i] != '\x00' || buffer[i + 1] != '\x00' || buffer[i + 2] != '\x00') && buffer[i + 3] == '\x04' && buffer[i + 4] == '\x34' && (buffer[i + 44] == '\x01' || buffer[i + 44] == '\x02') && buffer[i + 45] == '\x00' && buffer[i + 48] == '\x2D' && i + static_cast<unsigned char>(buffer[i]) + (static_cast<unsigned char>(buffer[i + 1]) << 8) + (static_cast<unsigned char>(buffer[i + 2]) << 16) < buffer.size() && buffer[i + static_cast<unsigned char>(buffer[i]) + (static_cast<unsigned char>(buffer[i + 1]) << 8) + (static_cast<unsigned char>(buffer[i + 2]) << 16) - 1] == '\x00' && buffer[i + static_cast<unsigned char>(buffer[i]) + (static_cast<unsigned char>(buffer[i + 1]) << 8) + (static_cast<unsigned char>(buffer[i + 2]) << 16) - 2] == '\x00') {
+        if ((buffer[i] != '\x00' || buffer[i + 1] != '\x00' || buffer[i + 2] != '\x00') && buffer[i + 3] == '\x04' && buffer[i + 4] == '\x34' && (buffer[i + 44] == '\x01' || buffer[i + 44] == '\x02') && buffer[i + 45] == '\x00' && buffer[i + 48] == '\x2D' && i + static_cast<unsigned char>(buffer[i]) + (static_cast<unsigned char>(buffer[i + 1]) << 8) + (static_cast<unsigned char>(buffer[i + 2]) << 16) <= buffer.size() && buffer[i + static_cast<unsigned char>(buffer[i]) + (static_cast<unsigned char>(buffer[i + 1]) << 8) + (static_cast<unsigned char>(buffer[i + 2]) << 16) - 1] == '\x00' && buffer[i + static_cast<unsigned char>(buffer[i]) + (static_cast<unsigned char>(buffer[i + 1]) << 8) + (static_cast<unsigned char>(buffer[i + 2]) << 16) - 2] == '\x00') {
 
             // Set temp string package
             tempStringPackage.header.offset = i;
@@ -90,10 +95,11 @@ void getUEFIStrings(vector<UEFI_IFR_STRING_PACK> &stringPackages, vector<string>
             if ((strBlock + offset)->BlockType == EFI_HII_SIBT_STRING_UCS2) {
                 EFI_HII_SIBT_STRING_UCS2_BLOCK* str = (EFI_HII_SIBT_STRING_UCS2_BLOCK*)(strBlock + offset);
 
-                std::wstring ws = str->StringText;
-                strings.push_back(std::string(ws.begin(), ws.end()));
+                std::u16string ws = (CHAR16*)&(str->StringText);
+                std::string s = std::string(ws.begin(), ws.end());
+                strings.push_back(s);
 
-                offset += (wcslen(str->StringText) + 1) * sizeof(CHAR16) + 1;
+                offset += (s.length() + 1) * sizeof(CHAR16) + 1;
             }
             else if ((strBlock + offset)->BlockType == EFI_HII_SIBT_SKIP2) {
                 EFI_HII_SIBT_SKIP2_BLOCK* skipBlock = (EFI_HII_SIBT_SKIP2_BLOCK*)(strBlock + offset);
@@ -107,7 +113,8 @@ void getUEFIStrings(vector<UEFI_IFR_STRING_PACK> &stringPackages, vector<string>
                 offset += sizeof(EFI_HII_SIBT_END_BLOCK);
             }
             else {
-                // TODO: unhandled blocks...
+				// Don't know how to handle this one
+				break;
             }
         }
     }
@@ -166,13 +173,18 @@ void getUEFIFormSets(vector<UEFI_IFR_FORM_SET_PACK> &formSets, const string &buf
     }
 
     // Go through buffer
-    for (uint32_t i = 0; i < buffer.size() - 4; i++) {
+    //FIXME: This is a very rough hack to workaround https://github.com/LongSoft/Universal-IFR-Extractor/issues/10,
+    // where a spurious section is detected within PE header. Address it later.
+    static const uint32_t DosHeaderSize = 64;
+    static const uint32_t DosStubSize = 128;
+    static const uint32_t ImageNtHeader = 24;
+    for (uint32_t i = DosHeaderSize + DosStubSize + ImageNtHeader; i < buffer.size() - 4; i++) {
 
         // Check if form set was found
         if ((buffer[i] != '\x00' || buffer[i + 1] != '\x00' || buffer[i + 2] != '\x00')
             && buffer[i + 3] == '\x02'
             && buffer[i + 4] == '\x0E'
-            && i + static_cast<unsigned char>(buffer[i]) + (static_cast<unsigned char>(buffer[i + 1]) << 8) + (static_cast<unsigned char>(buffer[i + 2]) << 16) < buffer.size()
+            && i + static_cast<unsigned char>(buffer[i]) + (static_cast<unsigned char>(buffer[i + 1]) << 8) + (static_cast<unsigned char>(buffer[i + 2]) << 16) <= buffer.size()
             && buffer[i + static_cast<unsigned char>(buffer[i]) + (static_cast<unsigned char>(buffer[i + 1]) << 8) + (static_cast<unsigned char>(buffer[i + 2]) << 16) - 1] == '\x02'
             && buffer[i + static_cast<unsigned char>(buffer[i]) + (static_cast<unsigned char>(buffer[i + 1]) << 8) + (static_cast<unsigned char>(buffer[i + 2]) << 16) - 2] == '\x29') {
 
@@ -188,6 +200,20 @@ void getUEFIFormSets(vector<UEFI_IFR_FORM_SET_PACK> &formSets, const string &buf
             tempFormSet.header.type = static_cast<unsigned char>(buffer[i + 3]);
             tempFormSet.titleString = static_cast<uint16_t>(static_cast<unsigned char>(buffer[i + 22]) + (static_cast<unsigned char>(buffer[i + 23]) << 8));
             tempFormSet.usingStringPackage = chosenCandidate;
+
+            // Avoid overflow
+            if(tempFormSet.titleString > strings.size() || tempFormSet.usingStringPackage > stringPackages.size()) {
+                continue;
+            }
+
+            // Fix when the selected string package is not enough to decode the string
+            if (tempFormSet.titleString + stringPackages[chosenCandidate].structureOffset < strings.size()) {
+                tempFormSet.usingStringPackage = chosenCandidate;
+            }
+            else {
+                tempFormSet.usingStringPackage = stringCandidates[0];
+            }
+            
             tempFormSet.title = strings[tempFormSet.titleString + stringPackages[tempFormSet.usingStringPackage].structureOffset];
 
             // Add temp form set to list
