@@ -6,10 +6,6 @@
 #include "UEFI.h"
 #include "UEFIHeader.h"
 
-#if defined (__APPLE__) || defined (__unix__)
-    #define _strcmpi strcasecmp
-#endif
-
 // Supporting function implementation
 void getUEFIStringPackages(vector<UEFI_IFR_STRING_PACK> &stringPackages, const string &buffer) {
 
