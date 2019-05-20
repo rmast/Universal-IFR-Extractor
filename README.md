@@ -15,3 +15,5 @@ cmake ..
 make
 ```
 main-cli.cpp is the real main then.
+
+See also https://github.com/jfwells/linux-asus-t100ta/issues/4
