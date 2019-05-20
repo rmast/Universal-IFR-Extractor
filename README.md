@@ -7,3 +7,11 @@ A fork of <a href="https://github.com/donovan6000/Universal-IFR-Extractor">Donov
 
 Original code by Donovan6000, rewritten UEFI.cpp by TomRus88, fixes and additions by DeathBringer, Fernando Rodriguez and Seth Stahlman.
 
+compile in WSL/Windows-bash with
+```
+mkdir out
+cd out
+cmake ..
+make
+```
+main-cli.cpp is the real main then.
